@@ -1,0 +1,41 @@
+:root {
+    --primary-color: #1b5e20;
+    /* Hijau Tua */
+    --secondary-color: #a5d6a7;
+    /* Hijau Muda */
+    --bg-light: #ffffff;
+    /* Putih */
+    --text-dark: #212529;
+}
+
+body {
+    background-color: var(--bg-light);
+}
+
+/* Override Bootstrap Primary Button */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #144a19;
+    /* Lebih gelap dikit */
+}
+
+/* Navbar */
+.navbar-custom {
+    background-color: var(--primary-color);
+}
+
+.navbar-custom .nav-link,
+.navbar-custom .navbar-brand {
+    color: white !important;
+}
+
+/* Card Header Hijau Muda */
+.card-header-custom {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    font-weight: bold;
+}
