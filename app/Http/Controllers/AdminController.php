@@ -61,4 +61,23 @@ class AdminController extends Controller
         $laporan = Pendaftaran::where('status', 'done')->with('user', 'poli')->get();
         return view('admin.laporan', compact('laporan'));
     }
+
+    public function getPendingJson()
+    {
+        $pending = Pendaftaran::where('status', 'pending')
+            ->with('user', 'poli')
+            ->latest() // Mengambil data terbaru di atas
+            ->get();
+
+        $stats = [
+            'pending' => $pending->count(),
+            'verified' => Pendaftaran::where('status', 'verified')->count(),
+            'done' => Pendaftaran::where('status', 'done')->count(),
+        ];
+
+        return response()->json([
+            'data' => $pending,
+            'stats' => $stats
+        ]);
+    }
 }

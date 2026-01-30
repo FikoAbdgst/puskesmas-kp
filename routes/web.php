@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/jadwal-dokter', [HomeController::class, 'jadwalDokter'])->name('pasien.jadwal');
     Route::get('/info-poli', [HomeController::class, 'infoPoli'])->name('pasien.poli');
+
+    Route::get('/api/riwayat-terbaru', [PendaftaranController::class, 'getRiwayatJson'])->name('pendaftaran.json');
 });
 
 // 4. Route untuk ADMIN (Petugas)
@@ -41,4 +43,6 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     // CRUD Poli & Dokter
     Route::resource('poli', PoliController::class);
     Route::resource('dokter', DokterController::class);
+
+    Route::get('/api/pending-terbaru', [AdminController::class, 'getPendingJson'])->name('admin.pending.json');
 });

@@ -41,4 +41,12 @@ class PendaftaranController extends Controller
 
         return redirect()->route('home')->with('success', 'Pendaftaran berhasil dikirim! Silakan tunggu verifikasi petugas.');
     }
+    public function getRiwayatJson()
+    {
+        $riwayat = Pendaftaran::where('user_id', Auth::id())
+            ->with('poli')
+            ->latest()
+            ->get();
+        return response()->json($riwayat);
+    }
 }
