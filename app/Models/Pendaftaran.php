@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pendaftaran extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'poli_id',
+        'dokter_id',
+        'tanggal_kunjungan',
+        'nomor_antrian',
+        'keluhan',
+        'status'
+    ];
     protected $guarded = [];
 
     public function user()

@@ -9,50 +9,60 @@ use App\Models\Dokter;
 
 class AdminController extends Controller
 {
-    // Dashboard Admin & List Pendaftaran Masuk (Pending)
     public function index()
     {
-        $pending = Pendaftaran::where('status', 'pending')->with('user', 'poli')->get();
+        // Ubah 'pending' menjadi 'Menunggu'
+        $pending = Pendaftaran::where('status', 'Menunggu')->with('user', 'poli')->get();
 
-        // Statistik Sederhana
         $stats = [
             'pending' => $pending->count(),
-            'verified' => Pendaftaran::where('status', 'verified')->count(),
-            'done' => Pendaftaran::where('status', 'done')->count(),
+            'verified' => Pendaftaran::where('status', 'Diterima')->count(), // 'verified' -> 'Diterima'
+            'done' => Pendaftaran::where('status', 'Selesai')->count(),     // 'done' -> 'Selesai'
         ];
 
         return view('admin.dashboard', compact('pending', 'stats'));
     }
 
-    // Proses Verifikasi (Ubah status pending -> verified)
     public function verifikasi($id)
     {
-        $data = Pendaftaran::find($id);
-        $data->status = 'verified';
+        $data = Pendaftaran::findOrFail($id);
+        $data->status = 'Diterima'; // Ubah menjadi 'Diterima' (Booking valid dan aktif)
         $data->save();
 
-        return back()->with('success', 'Data Pasien Valid. Masuk antrean pemeriksaan.');
+        return back()->with('success', 'Pendaftaran Diterima. Pasien masuk antrean pemeriksaan.');
     }
 
-    // Halaman Pemeriksaan Dokter (List Pasien Verified)
     public function pelayanan()
     {
-        // Hanya ambil pasien yang sudah diverifikasi
-        $antrean = Pendaftaran::where('status', 'verified')->with('user', 'poli')->get();
+        // Ubah 'verified' menjadi 'Diterima'
+        $antrean = Pendaftaran::where('status', 'Diterima')->with('user', 'poli')->get();
         return view('admin.pelayanan', compact('antrean'));
     }
 
-    // Proses Simpan Hasil Pemeriksaan (Ubah status verified -> done)
     public function prosesPeriksa(Request $request, $id)
     {
-        $data = Pendaftaran::find($id);
+        $data = Pendaftaran::findOrFail($id);
         $data->update([
-            'status' => 'done',
+            'status' => 'Selesai', // Ubah menjadi 'Selesai'
             'catatan_medis' => $request->catatan_medis,
             'resep_obat' => $request->resep_obat,
         ]);
 
-        return back()->with('success', 'Pemeriksaan Selesai. Data tersimpan.');
+        return back()->with('success', 'Pemeriksaan Selesai.');
+    }
+
+    public function getPendingJson()
+    {
+        // Sesuaikan juga untuk API Dashboard
+        $pending = Pendaftaran::where('status', 'Menunggu')->with('user', 'poli')->latest()->get();
+
+        $stats = [
+            'pending' => $pending->count(),
+            'verified' => Pendaftaran::where('status', 'Diterima')->count(),
+            'done' => Pendaftaran::where('status', 'Selesai')->count(),
+        ];
+
+        return response()->json(['data' => $pending, 'stats' => $stats]);
     }
 
     // Halaman Laporan
@@ -60,24 +70,5 @@ class AdminController extends Controller
     {
         $laporan = Pendaftaran::where('status', 'done')->with('user', 'poli')->get();
         return view('admin.laporan', compact('laporan'));
-    }
-
-    public function getPendingJson()
-    {
-        $pending = Pendaftaran::where('status', 'pending')
-            ->with('user', 'poli')
-            ->latest() // Mengambil data terbaru di atas
-            ->get();
-
-        $stats = [
-            'pending' => $pending->count(),
-            'verified' => Pendaftaran::where('status', 'verified')->count(),
-            'done' => Pendaftaran::where('status', 'done')->count(),
-        ];
-
-        return response()->json([
-            'data' => $pending,
-            'stats' => $stats
-        ]);
     }
 }

@@ -16,30 +16,41 @@ class PendaftaranController extends Controller
         return view('pasien.daftar', compact('polis'));
     }
 
-    // Proses Simpan Pendaftaran
     public function store(Request $request)
     {
         $request->validate([
             'nik' => 'required|numeric',
-            'poli_id' => 'required',
+            'poli_id' => 'required|exists:polis,id',
             'keluhan' => 'required',
             'tanggal_kunjungan' => 'required|date|after_or_equal:today',
         ]);
 
-        // Update NIK user jika belum ada
-        if (!Auth::user()->nik) {
-            Auth::user()->update(['nik' => $request->nik]);
+        $poli = Poli::findOrFail($request->poli_id);
+
+        // Validasi kuota sesuai desain [cite: 9]
+        $countBooking = Pendaftaran::where('poli_id', $request->poli_id)
+            ->where('tanggal_kunjungan', $request->tanggal_kunjungan)
+            ->count();
+
+        if ($countBooking >= $poli->kuota) {
+            return back()->with('error', 'Kuota pendaftaran untuk poli ini sudah penuh.');
         }
+
+        // Penomoran otomatis [cite: 11]
+        $prefix = strtoupper(substr($poli->nama_poli, 0, 1));
+        $nomorUrut = str_pad($countBooking + 1, 2, '0', STR_PAD_LEFT);
+        $nomorAntrian = $prefix . '-' . $nomorUrut;
 
         Pendaftaran::create([
             'user_id' => Auth::id(),
             'poli_id' => $request->poli_id,
             'tanggal_kunjungan' => $request->tanggal_kunjungan,
+            'nomor_antrian' => $nomorAntrian,
             'keluhan' => $request->keluhan,
-            'status' => 'pending', // Default status menunggu verifikasi
+            'status' => 'Menunggu', // PASTIKAN STATUS INI
         ]);
 
-        return redirect()->route('home')->with('success', 'Pendaftaran berhasil dikirim! Silakan tunggu verifikasi petugas.');
+        return redirect()->route('home')->with('success', 'Booking berhasil! Status: Menunggu verifikasi petugas.');
     }
     public function getRiwayatJson()
     {

@@ -247,20 +247,31 @@
             white-space: nowrap;
         }
 
+        /* Update Warna Status Sesuai Dokumen Desain */
         .status-pending {
             background: #fff3e0;
             color: #e65100;
         }
 
+        /* Menunggu */
         .status-verified {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .status-done {
             background: #e8f5e9;
             color: #2e7d32;
         }
+
+        /* Diterima */
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Dibatalkan */
+        .status-done {
+            background: #f5f5f5;
+            color: #616161;
+        }
+
+        /* Selesai */
 
         .empty-state {
             padding: 4rem 2rem;
@@ -309,7 +320,7 @@
             color: #666;
         }
 
-        /* Responsive Design */
+        /* Responsive Design (Keep Original) */
         @media (max-width: 768px) {
             .welcome-banner {
                 padding: 2rem 1.5rem;
@@ -319,21 +330,9 @@
                 font-size: 1.5rem;
             }
 
-            .welcome-content p {
-                font-size: 1rem;
-            }
-
             .actions-grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
-            }
-
-            .status-header {
-                padding: 1.5rem 1.5rem;
-            }
-
-            .status-header h4 {
-                font-size: 1.2rem;
             }
 
             .status-table thead {
@@ -371,29 +370,9 @@
                 font-weight: 600;
             }
         }
-
-        @media (max-width: 576px) {
-            .patient-container {
-                padding: 0 0.5rem;
-            }
-
-            .action-card-top {
-                padding: 2rem 1.5rem 1.5rem;
-            }
-
-            .action-card-bottom {
-                padding: 1.5rem 1.5rem;
-            }
-
-            .status-table thead th,
-            .status-table tbody td {
-                padding: 1.25rem 1.5rem;
-            }
-        }
     </style>
 
     <div class="patient-container">
-        <!-- Welcome Banner -->
         <div class="welcome-banner">
             <div class="welcome-content">
                 <h1>Selamat Datang, {{ Auth::user()->name }}</h1>
@@ -401,10 +380,8 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
         <div class="quick-actions">
             <div class="actions-grid">
-                <!-- Pendaftaran -->
                 <div class="action-card featured">
                     <div class="action-card-top">
                         <div class="action-icon">📋</div>
@@ -417,7 +394,6 @@
                     </div>
                 </div>
 
-                <!-- Jadwal Dokter -->
                 <div class="action-card">
                     <div class="action-card-top">
                         <div class="action-icon">👨‍⚕️</div>
@@ -430,7 +406,6 @@
                     </div>
                 </div>
 
-                <!-- Info Poli -->
                 <div class="action-card">
                     <div class="action-card-top">
                         <div class="action-icon">🏥</div>
@@ -444,7 +419,6 @@
             </div>
         </div>
 
-        <!-- Registration Status -->
         <div class="status-section">
             <div class="status-header">
                 <h4>Riwayat Pendaftaran</h4>
@@ -456,13 +430,14 @@
                             <tr>
                                 <th>Tanggal</th>
                                 <th>Poliklinik</th>
+                                <th>Antrian</th>
                                 <th>Keluhan</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="table-status-pasien">
                             <tr>
-                                <td colspan="4">
+                                <td colspan="5">
                                     <div class="loading-state">
                                         <div class="loading-spinner"></div>
                                         <div class="loading-text">Memuat data pendaftaran...</div>
@@ -487,45 +462,40 @@
                     if (data.length > 0) {
                         data.forEach(function(r) {
                             let badge = '';
-                            let badgeIcon = '';
+                            let statusText = r
+                                .status; // Sesuai database (Menunggu, Diterima, Dibatalkan, Selesai)
 
-                            if (r.status === 'pending') {
+                            // Logika Mapping Status Sesuai Desain Word [cite: 1, 16]
+                            if (r.status === 'Menunggu') {
                                 badge = 'status-pending';
-                                badgeIcon = '⏳';
-                            } else if (r.status === 'verified') {
+                            } else if (r.status === 'Diterima') {
                                 badge = 'status-verified';
-                                badgeIcon = '✓';
-                            } else {
+                            } else if (r.status === 'Dibatalkan') {
+                                badge = 'status-cancelled';
+                            } else if (r.status === 'Selesai') {
                                 badge = 'status-done';
-                                badgeIcon = '✓';
+                            } else {
+                                // Fallback jika status masih menggunakan format lama (pending/verified)
+                                badge = r.status === 'pending' ? 'status-pending' : 'status-done';
+                                statusText = r.status === 'pending' ? 'Menunggu' : 'Selesai';
                             }
-
-                            let statusText = r.status === 'pending' ? 'Menunggu Verifikasi' :
-                                r.status === 'verified' ? 'Siap Diperiksa' : 'Selesai';
 
                             rows += `
                                 <tr>
                                     <td data-label="Tanggal" class="status-date">${r.tanggal_kunjungan}</td>
                                     <td data-label="Poliklinik" class="status-poli">${r.poli.nama_poli}</td>
+                                    <td data-label="Antrian" class="fw-bold text-dark">${r.nomor_antrian || '-'}</td>
                                     <td data-label="Keluhan" class="status-keluhan">${r.keluhan}</td>
                                     <td data-label="Status">
                                         <span class="status-badge ${badge}">
-                                            <span>${badgeIcon}</span>
                                             <span>${statusText}</span>
                                         </span>
                                     </td>
                                 </tr>`;
                         });
                     } else {
-                        rows = `
-                            <tr>
-                                <td colspan="4">
-                                    <div class="empty-state">
-                                        <div class="empty-icon">📋</div>
-                                        <div class="empty-text">Belum ada riwayat pendaftaran</div>
-                                    </div>
-                                </td>
-                            </tr>`;
+                        rows =
+                            `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada riwayat pendaftaran</div></div></td></tr>`;
                     }
                     $('#table-status-pasien').html(rows);
                 }

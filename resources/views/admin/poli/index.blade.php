@@ -184,6 +184,15 @@
         .table tbody tr:hover {
             background-color: #f8f9fa;
         }
+
+        .badge-kuota {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
     </style>
 
     <div class="page-header">
@@ -208,6 +217,7 @@
                         <tr>
                             <th style="width: 60px;">No</th>
                             <th>Nama Poli</th>
+                            <th>Kuota / Hari</th>
                             <th>Deskripsi</th>
                             <th style="width: 200px; text-align: center;">Aksi</th>
                         </tr>
@@ -218,6 +228,9 @@
                                 <td class="text-center">{{ $index + 1 }}</td>
                                 <td>
                                     <strong style="color: var(--primary-green);">{{ $poli->nama_poli }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge-kuota">{{ $poli->kuota ?? '0' }} Pasien</span>
                                 </td>
                                 <td>
                                     <span class="poli-description">{{ $poli->deskripsi ?: '-' }}</span>
@@ -235,7 +248,6 @@
                                 </td>
                             </tr>
 
-                            <!-- Edit Modal -->
                             <div class="modal fade" id="editPoliModal{{ $poli->id }}" tabindex="-1">
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content">
@@ -251,6 +263,14 @@
                                                     <input type="text" name="nama_poli" class="form-control"
                                                         value="{{ $poli->nama_poli }}" required
                                                         placeholder="Contoh: Poli Umum">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="kuota" class="form-label">Kuota Pasien Per Hari</label>
+                                                    <input type="number" name="kuota" class="form-control"
+                                                        value="{{ $poli->kuota }}" required min="1"
+                                                        placeholder="Contoh: 30">
+                                                    <small class="text-muted">Jumlah maksimal pasien yang bisa mendaftar per
+                                                        hari.</small>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">Deskripsi</label>
@@ -270,9 +290,9 @@
                             </div>
                         @empty
                             <tr>
-                                <td colspan="4" class="empty-state">
-                                    <div class="empty-state-icon">🏥</div>
-                                    <div>Belum ada data poli. Silakan tambahkan data poli baru.</div>
+                                <td colspan="5" class="empty-state text-center py-5">
+                                    <div class="empty-state-icon" style="font-size: 3rem;">🏥</div>
+                                    <div class="mt-3">Belum ada data poli. Silakan tambahkan data poli baru.</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -282,7 +302,6 @@
         </div>
     </div>
 
-    <!-- Add Modal -->
     <div class="modal fade" id="addPoliModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -294,13 +313,21 @@
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Nama Poli</label>
-                            <input type="text" name="nama_poli" class="form-control" required
-                                placeholder="Contoh: Poli Umum">
+                            <label for="nama_poli" class="form-label">Nama Poliklinik</label>
+                            <input type="text" name="nama_poli" class="form-control" placeholder="Contoh: Poli Gigi"
+                                required>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi" class="form-control" rows="4" placeholder="Jelaskan layanan poli ini..."></textarea>
+                            <label for="kuota" class="form-label">Kuota Pasien Per Hari</label>
+                            <input type="number" name="kuota" class="form-control" placeholder="Contoh: 30" required
+                                min="1">
+                            <small class="text-muted">Jumlah maksimal pasien yang bisa mendaftar per hari.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="deskripsi" class="form-label">Deskripsi (Opsional)</label>
+                            <textarea name="deskripsi" class="form-control" rows="3" placeholder="Jelaskan singkat mengenai poli ini..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">

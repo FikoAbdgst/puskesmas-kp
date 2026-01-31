@@ -23,7 +23,13 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        // Mengambil riwayat pendaftaran milik user yang sedang login
+        $riwayat = \App\Models\Pendaftaran::where('user_id', auth()->id())
+            ->with('poli')
+            ->latest()
+            ->get();
+
+        return view('home', compact('riwayat'));
     }
     public function jadwalDokter()
     {

@@ -10,7 +10,7 @@ class Poli extends Model
     use HasFactory;
 
     // Izinkan kolom ini diisi
-    protected $fillable = ['nama_poli', 'deskripsi'];
+    protected $fillable = ['nama_poli', 'kuota', 'deskripsi'];
 
     // Relasi (Opsional, untuk mempermudah kedepannya)
     public function dokters()

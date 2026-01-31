@@ -10,7 +10,7 @@
         <td>
             <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-validasi btn-sm">✅ Validasi</button>
+                <button type="submit" class="btn btn-validasi btn-sm">✅ Terima Booking</button>
             </form>
         </td>
     </tr>

@@ -21,11 +21,6 @@
             margin-bottom: 0.75rem;
         }
 
-        .form-header p {
-            color: #666;
-            font-size: 1.05rem;
-        }
-
         /* Form Container */
         .form-container {
             background: white;
@@ -38,7 +33,7 @@
             padding: 3rem;
         }
 
-        /* Alert */
+        /* Alert & Info Box */
         .info-alert {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border-radius: 14px;
@@ -49,9 +44,15 @@
             align-items: flex-start;
         }
 
-        .info-alert-icon {
-            font-size: 1.5rem;
-            flex-shrink: 0;
+        .queue-info-box {
+            background: #fff3e0;
+            border: 1px solid #ffe0b2;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .info-alert-text {
@@ -60,22 +61,11 @@
             margin: 0;
         }
 
-        .info-alert-text strong {
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
         /* Form Section */
         .form-section {
             margin-bottom: 2.5rem;
             padding-bottom: 2.5rem;
             border-bottom: 2px solid #f5f5f5;
-        }
-
-        .form-section:last-of-type {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
         }
 
         .section-title {
@@ -96,41 +86,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-        }
-
-        /* Form Group */
-        .form-group {
-            margin-bottom: 1.75rem;
-        }
-
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.625rem;
-            font-size: 0.95rem;
-        }
-
-        .form-label .required {
-            color: #dc3545;
-            margin-left: 0.25rem;
         }
 
         .form-control,
         .form-select {
             width: 100%;
             padding: 0.875rem 1.125rem;
-            font-size: 1rem;
             border: 2px solid #e8e8e8;
             border-radius: 12px;
-            background: white;
             transition: all 0.3s ease;
-            font-family: inherit;
         }
 
         .form-control:focus,
@@ -138,25 +102,6 @@
             outline: none;
             border-color: #1b5e20;
             box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.1);
-        }
-
-        .form-control[readonly] {
-            background: #f8f9fa;
-            color: #666;
-            cursor: not-allowed;
-        }
-
-        .form-text {
-            display: block;
-            margin-top: 0.5rem;
-            color: #666;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
         }
 
         /* Form Actions */
@@ -171,26 +116,16 @@
             padding: 1rem 2rem;
             border-radius: 12px;
             font-weight: 600;
-            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #144a19 0%, #1b5e20 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(27, 94, 32, 0.4);
-            color: white;
+            border: none;
         }
 
         .btn-secondary {
@@ -199,22 +134,7 @@
             border: 2px solid #e8e8e8;
         }
 
-        .btn-secondary:hover {
-            background: #f8f9fa;
-            border-color: #ddd;
-            color: #333;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .form-inner {
-                padding: 2rem 1.5rem;
-            }
-
-            .form-header h1 {
-                font-size: 1.5rem;
-            }
-
             .form-actions {
                 grid-template-columns: 1fr;
             }
@@ -223,41 +143,27 @@
                 order: 2;
             }
         }
-
-        @media (max-width: 576px) {
-            .registration-wrapper {
-                padding: 0 0.5rem;
-            }
-
-            .form-inner {
-                padding: 1.5rem 1rem;
-            }
-
-            .section-title {
-                font-size: 1.1rem;
-            }
-
-            .info-alert {
-                padding: 1rem;
-                flex-direction: column;
-            }
-        }
     </style>
 
     <div class="registration-wrapper">
         <div class="form-header">
-            <h1>Form Pendaftaran Pasien</h1>
-            <p>Lengkapi formulir berikut untuk mendaftar layanan kesehatan</p>
+            [cite_start]<h1>Booking Antrian Online</h1>
+            <p>Dapatkan nomor antrian tanpa harus mengantri secara fisik [cite: 18]</p>
         </div>
 
         <div class="form-container">
             <div class="form-inner">
+                {{-- Pesan Error/Sukses --}}
+                @if (session('error'))
+                    <div class="alert alert-danger mb-4">{{ session('error') }}</div>
+                @endif
+
                 <div class="info-alert">
                     <div class="info-alert-icon">ℹ️</div>
                     <p class="info-alert-text">
-                        <strong>Perhatian</strong>
-                        Pastikan semua data yang Anda masukkan sudah benar dan sesuai. Pendaftaran akan diproses oleh
-                        petugas administrasi kami.
+                        <strong>Ketentuan Booking</strong>
+                        [cite_start]Pendaftaran diproses berdasarkan kuota harian tiap poliklinik[cite: 9].
+                        [cite_start]Nomor antrian otomatis dihasilkan setelah Anda mengirim form ini[cite: 11].
                     </p>
                 </div>
 
@@ -267,68 +173,68 @@
                     <div class="form-section">
                         <h3 class="section-title">
                             <span class="section-icon">👤</span>
-                            <span>Data Pasien</span>
+                            <span>Data Identitas (NIK)</span>
                         </h3>
 
-                        <div class="form-group">
+                        <div class="form-group mb-3">
                             <label class="form-label">Nama Lengkap</label>
                             <input type="text" class="form-control" value="{{ Auth::user()->name }}" readonly>
-                            <small class="form-text">Nama tidak dapat diubah. Hubungi administrator jika ada
-                                kesalahan.</small>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">
-                                NIK / Nomor Rekam Medis<span class="required">*</span>
-                            </label>
+                            <label class="form-label">NIK (Nomor Induk Kependudukan) <span
+                                    class="text-danger">*</span></label>
                             <input type="number" name="nik" class="form-control" value="{{ Auth::user()->nik }}"
                                 placeholder="Masukkan 16 digit NIK Anda" required maxlength="16">
-                            <small class="form-text">NIK digunakan untuk validasi data dan keperluan administrasi.</small>
+                            <small class="text-muted">NIK digunakan sebagai basis autentikasi dan rekam medis[cite: 7,
+                                9].</small>
                         </div>
                     </div>
 
                     <div class="form-section">
                         <h3 class="section-title">
                             <span class="section-icon">🏥</span>
-                            <span>Informasi Kunjungan</span>
+                            <span>Pilih Layanan & Jadwal</span>
                         </h3>
 
-                        <div class="form-group">
-                            <label class="form-label">
-                                Poliklinik Tujuan<span class="required">*</span>
-                            </label>
+                        <div class="form-group mb-4">
+                            <label class="form-label">Poliklinik Tujuan <span class="text-danger">*</span></label>
                             <select name="poli_id" class="form-select" required>
                                 <option value="">-- Pilih Poliklinik --</option>
                                 @foreach ($polis as $poli)
-                                    <option value="{{ $poli->id }}">{{ $poli->nama_poli }}</option>
+                                    <option value="{{ $poli->id }}">
+                                        {{ $poli->nama_poli }} (Sisa Kuota: {{ $poli->kuota }}) </option>
                                 @endforeach
                             </select>
-                            <small class="form-text">Pilih poliklinik sesuai dengan keluhan kesehatan Anda.</small>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label">
-                                Tanggal Kunjungan<span class="required">*</span>
-                            </label>
+                        <div class="form-group mb-4">
+                            <label class="form-label">Tanggal Kunjungan <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal_kunjungan" class="form-control" min="{{ date('Y-m-d') }}"
                                 required>
-                            <small class="form-text">Pilih tanggal kunjungan yang Anda inginkan.</small>
+                            <small class="text-muted">Nomor antrian akan di-reset setiap hari[cite: 11].</small>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">
-                                Keluhan<span class="required">*</span>
-                            </label>
-                            <textarea name="keluhan" class="form-control" placeholder="Jelaskan keluhan kesehatan yang Anda alami secara detail..."
-                                required></textarea>
-                            <small class="form-text">Jelaskan keluhan Anda dengan jelas agar dokter dapat memberikan
-                                penanganan yang tepat.</small>
+                            <label class="form-label">Keluhan Utama <span class="text-danger">*</span></label>
+                            <textarea name="keluhan" class="form-control" rows="3"
+                                placeholder="Jelaskan secara singkat alasan kunjungan Anda..." required></textarea>
+                        </div>
+                    </div>
+
+                    {{-- Info Mekanisme Antrian --}}
+                    <div class="queue-info-box">
+                        <div style="font-size: 1.5rem;">🎫</div>
+                        <div style="font-size: 0.9rem; color: #e65100;">
+                            <strong>Mekanisme Otomatis:</strong> Sistem akan memberikan format nomor seperti
+                            <strong>U-01</strong> (Umum) atau <strong>G-02</strong> (Gigi) setelah Anda menekan tombol
+                            kirim[cite: 11].
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Kirim Pendaftaran</button>
-                        <a href="{{ route('home') }}" class="btn btn-secondary">Batal</a>
+                        <button type="submit" class="btn btn-primary">Konfirmasi Booking</button> <a
+                            href="{{ route('home') }}" class="btn btn-secondary">Kembali ke Beranda</a>
                     </div>
                 </form>
             </div>
