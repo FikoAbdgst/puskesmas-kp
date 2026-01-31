@@ -13,7 +13,8 @@ class Pendaftaran extends Model
         'tanggal_kunjungan',
         'nomor_antrian',
         'keluhan',
-        'status'
+        'status',
+        'catatan_medis' // Pastikan ini ada
     ];
     protected $guarded = [];
 

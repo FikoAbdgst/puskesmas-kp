@@ -430,19 +430,14 @@
                             <tr>
                                 <th>Tanggal</th>
                                 <th>Poliklinik</th>
-                                <th>Antrian</th>
-                                <th>Keluhan</th>
+                                <th>Nomor Anda</th>
+                                <th>Antrian Live</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="table-status-pasien">
                             <tr>
-                                <td colspan="5">
-                                    <div class="loading-state">
-                                        <div class="loading-spinner"></div>
-                                        <div class="loading-text">Memuat data pendaftaran...</div>
-                                    </div>
-                                </td>
+                                <td colspan="5" class="text-center py-4">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -461,48 +456,57 @@
                     let rows = '';
                     if (data.length > 0) {
                         data.forEach(function(r) {
-                            let badge = '';
-                            let statusText = r
-                                .status; // Sesuai database (Menunggu, Diterima, Dibatalkan, Selesai)
-
-                            // Logika Mapping Status Sesuai Desain Word [cite: 1, 16]
-                            if (r.status === 'Menunggu') {
-                                badge = 'status-pending';
-                            } else if (r.status === 'Diterima') {
-                                badge = 'status-verified';
-                            } else if (r.status === 'Dibatalkan') {
-                                badge = 'status-cancelled';
-                            } else if (r.status === 'Selesai') {
-                                badge = 'status-done';
-                            } else {
-                                // Fallback jika status masih menggunakan format lama (pending/verified)
-                                badge = r.status === 'pending' ? 'status-pending' : 'status-done';
-                                statusText = r.status === 'pending' ? 'Menunggu' : 'Selesai';
-                            }
+                            let badgeClass = getBadgeClass(r.status);
 
                             rows += `
-                                <tr>
-                                    <td data-label="Tanggal" class="status-date">${r.tanggal_kunjungan}</td>
-                                    <td data-label="Poliklinik" class="status-poli">${r.poli.nama_poli}</td>
-                                    <td data-label="Antrian" class="fw-bold text-dark">${r.nomor_antrian || '-'}</td>
-                                    <td data-label="Keluhan" class="status-keluhan">${r.keluhan}</td>
-                                    <td data-label="Status">
-                                        <span class="status-badge ${badge}">
-                                            <span>${statusText}</span>
-                                        </span>
-                                    </td>
-                                </tr>`;
+                            <tr>
+                                <td data-label="Tanggal" class="status-date">${r.tanggal_formatted}</td>
+                                <td data-label="Poliklinik" class="status-poli">${r.nama_poli}</td>
+                                <td data-label="Nomor Anda" class="fw-bold text-dark">${r.nomor_antrian || '-'}</td>
+                                <td data-label="Antrian Live">
+                                    <span class="text-danger font-weight-bold" data-poli-id="${r.poli_id}" name="live-queue-home">--</span>
+                                </td>
+                                <td data-label="Status">
+                                    <span class="status-badge ${badgeClass}">${r.status}</span>
+                                </td>
+                            </tr>`;
                         });
                     } else {
                         rows =
-                            `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada riwayat pendaftaran</div></div></td></tr>`;
+                            `<tr><td colspan="5" class="text-center py-4">Belum ada riwayat pendaftaran</td></tr>`;
                     }
                     $('#table-status-pasien').html(rows);
+                    updateLiveQueuesHome();
                 }
             });
         }
 
-        refreshPasienStatus();
-        setInterval(refreshPasienStatus, 5000);
+        function updateLiveQueuesHome() {
+            $('[name="live-queue-home"]').each(function() {
+                const el = $(this);
+                const poliId = el.data('poli-id');
+                $.get("{{ url('/api/live-antrian') }}/" + poliId, function(data) {
+                    el.text(data.nomor_sekarang);
+                });
+            });
+        }
+
+        function getBadgeClass(status) {
+            switch (status) {
+                case 'Menunggu':
+                    return 'status-pending';
+                case 'Dipanggil':
+                    return 'status-verified';
+                case 'Selesai':
+                    return 'status-done';
+                default:
+                    return 'status-cancelled';
+            }
+        }
+
+        $(document).ready(function() {
+            refreshPasienStatus();
+            setInterval(refreshPasienStatus, 15000);
+        });
     </script>
 @endsection

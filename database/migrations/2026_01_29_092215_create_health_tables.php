@@ -6,21 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
-        // Tabel Poli
         Schema::create('polis', function (Blueprint $table) {
             $table->id();
             $table->string('nama_poli');
-            $table->integer('kuota');
+            $table->integer('kuota')->nullable(); // Dibuat nullable karena tidak lagi menjadi pembatas utama
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
 
-        // Tabel Dokter
         Schema::create('dokters', function (Blueprint $table) {
             $table->id();
             $table->foreignId('poli_id')->constrained('polis');
@@ -37,17 +32,17 @@ return new class extends Migration
             $table->date('tanggal_kunjungan');
             $table->string('nomor_antrian')->nullable();
             $table->text('keluhan');
+            // Status ditambah 'Dipanggil' untuk mekanisme live antrian
             $table->string('status')->default('Menunggu');
             $table->text('catatan_medis')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('health_tables');
+        Schema::dropIfExists('pendaftarans');
+        Schema::dropIfExists('dokters');
+        Schema::dropIfExists('polis');
     }
 };
