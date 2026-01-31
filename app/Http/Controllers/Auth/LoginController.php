@@ -4,45 +4,48 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request; // Pastikan menggunakan Illuminate\Http\Request
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
     use AuthenticatesUsers;
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    // protected $redirectTo = '/home';
+    public function login(Request $request)
+    {
+        // 1. Validasi input
+        $request->validate([
+            'login'    => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        // 2. Tentukan apakah input adalah email atau NIK
+        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'nik';
+
+        // 3. Coba melakukan login
+        if (Auth::attempt([$loginType => $request->login, 'password' => $request->password])) {
+            return $this->authenticated($request, Auth::user());
+        }
+
+        // Jika gagal
+        return back()->withErrors(['login' => 'Kredensial tidak cocok dengan data kami.']);
+    }
+
     protected function authenticated(Request $request, $user)
     {
-        return redirect()->intended(route('home'));
+        // Pembedaan redirect berdasarkan role setelah login
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('home');
     }
+
     protected function loggedOut(Request $request)
     {
         return redirect()->route('login');
     }
 
-
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
