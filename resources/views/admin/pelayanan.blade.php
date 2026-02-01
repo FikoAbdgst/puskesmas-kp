@@ -2,120 +2,74 @@
 
 @section('content')
     <div class="container-fluid">
+        <h4 class="mb-4">Meja Pelayanan Dokter</h4>
+
         <div class="row">
-            <div class="col-md-5">
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white font-weight-bold">Konfirmasi Pendaftaran Baru</div>
-                    <div class="card-body p-0">
-                        <table class="table mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Pasien</th>
-                                    <th>Poli</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($pending as $p)
-                                    <tr>
-                                        <td>{{ $p->user->name }} <br><small class="text-muted">No:
-                                                {{ $p->nomor_antrian }}</small></td>
-                                        <td><span class="badge badge-info">{{ $p->poli->nama_poli }}</span></td>
-                                        <td>
-                                            <div class="d-flex gap-1">
-                                                <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
-                                                    @csrf
-                                                    <button class="btn btn-success btn-sm">Verifikasi</button>
-                                                </form>
+            @foreach ($polis as $poli)
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-success text-white d-flex justify-content-between">
+                            <strong>{{ $poli->nama_poli }}</strong>
+                            <span class="badge bg-white text-success">Live</span>
+                        </div>
+                        <div class="card-body">
+                            @php
+                                $current = $sedang_diperiksa->where('poli_id', $poli->id)->first();
+                                $waiting = $antrean_menunggu->where('poli_id', $poli->id);
+                            @endphp
 
-                                                {{-- Tombol Tolak --}}
-                                                <form action="{{ route('admin.tolak', $p->id) }}" method="POST"
-                                                    onsubmit="return confirm('Tolak pasien ini?');">
-                                                    @csrf
-                                                    <button class="btn btn-danger btn-sm">Tolak</button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
+                            <div class="text-center p-3 border rounded bg-light mb-3">
+                                <small class="text-muted d-block">Sedang Diperiksa:</small>
+                                @if ($current)
+                                    <h5 class="mt-2 text-primary">{{ $current->user->name }}</h5>
+                                    <span class="badge bg-danger mb-2">{{ $current->nomor_antrian }}</span>
+                                    <p class="small text-muted mb-3">Keluhan: {{ $current->keluhan }}</p>
+                                    <button class="btn btn-primary btn-sm w-100" data-bs-toggle="modal"
+                                        data-bs-target="#modal-{{ $current->id }}">
+                                        Input Diagnosa
+                                    </button>
+                                @else
+                                    <em class="text-muted">Kosong / Menunggu Antrean</em>
+                                @endif
+                            </div>
+
+                            <label class="small fw-bold text-muted mb-2">Daftar Tunggu Poli:</label>
+                            <ul class="list-group list-group-flush">
+                                @forelse($waiting as $w)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                        <span class="small">{{ $w->nomor_antrian }} - {{ $w->user->name }}</span>
+                                        <span class="badge bg-secondary rounded-pill">Menunggu</span>
+                                    </li>
                                 @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center py-4 text-muted">Tidak ada pendaftaran baru
-                                        </td>
-                                    </tr>
+                                    <li class="list-group-item small text-muted text-center px-0 py-2">Tidak ada antrean
+                                    </li>
                                 @endforelse
-                            </tbody>
-                        </table>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-md-7">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-primary text-white font-weight-bold">Meja Pemeriksaan (Antrean Live)</div>
-                    <div class="card-body p-0">
-                        <table class="table mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Poli</th>
-                                    <th>Pasien Sedang Diperiksa</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($periksa as $pk)
-                                    <tr>
-                                        <td class="font-weight-bold text-primary">{{ $pk->poli->nama_poli }}</td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="mr-3 text-center bg-danger text-white rounded px-2">
-                                                    <small>Antrean</small><br><strong>{{ $pk->nomor_antrian }}</strong>
-                                                </div>
-                                                <div>
-                                                    <strong>{{ $pk->user->name }}</strong><br>
-                                                    <small class="text-muted">Keluhan: {{ $pk->keluhan }}</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-primary btn-sm" data-toggle="modal"
-                                                data-target="#modalPeriksa-{{ $pk->id }}">Input Diagnosa</button>
-
-                                            <div class="modal fade" id="modalPeriksa-{{ $pk->id }}" tabindex="-1">
-                                                <div class="modal-dialog">
-                                                    <form action="{{ route('admin.periksa', $pk->id) }}" method="POST">
-                                                        @csrf
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5>Hasil Pemeriksaan</h5>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="form-group">
-                                                                    <label>Diagnosa & Resep Obat</label>
-                                                                    <textarea name="catatan_medis" class="form-control" rows="5" placeholder="Tulis diagnosa dan resep di sini..."
-                                                                        required></textarea>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="submit" class="btn btn-success">Selesai &
-                                                                    Panggil Berikutnya</button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center py-5 text-muted">Belum ada pasien di meja
-                                            pemeriksaan. <br>Silahkan verifikasi pendaftaran di samping.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                @if ($current)
+                    <div class="modal fade" id="modal-{{ $current->id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <form action="{{ route('admin.periksa', $current->id) }}" method="POST">
+                                @csrf
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5>Pemeriksaan: {{ $current->user->name }}</h5>
+                                    </div>
+                                    <div class="modal-body">
+                                        <textarea name="catatan_medis" class="form-control" rows="4" placeholder="Diagnosa & Resep..." required></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Selesai & Panggil Berikutnya</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            </div>
+                @endif
+            @endforeach
         </div>
     </div>
 @endsection

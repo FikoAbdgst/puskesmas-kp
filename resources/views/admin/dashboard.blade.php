@@ -214,7 +214,12 @@
             color: #495057;
         }
     </style>
-
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
     <div class="row g-4">
         <div class="col-lg-3">
             <div class="admin-sidebar">
@@ -334,6 +339,7 @@
                                     <th>Poli</th>
                                     <th>Tanggal Kunjungan</th>
                                     <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -342,11 +348,35 @@
                                         <td><strong>{{ $p->user->name }}</strong></td>
                                         <td>{{ $p->poli->nama_poli }}</td>
                                         <td>{{ date('d-m-Y', strtotime($p->tanggal_kunjungan)) }}</td>
-                                        <td><span class="badge bg-secondary">Menunggu</span></td>
+                                        <td>
+                                            @if ($p->status == 'Menunggu')
+                                                <span class="badge bg-warning text-dark">Perlu Verifikasi</span>
+                                            @else
+                                                <span class="badge bg-info">Menunggu Jadwal</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($p->status == 'Menunggu')
+                                                <div class="d-flex gap-2">
+                                                    <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="btn btn-success btn-sm">Verifikasi</button>
+                                                    </form>
+                                                    <form action="{{ route('admin.tolak', $p->id) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                            onclick="return confirm('Tolak?')">Tolak</button>
+                                                    </form>
+                                                </div>
+                                            @else
+                                                <small class="text-success fw-bold">✓ Terverifikasi</small>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="empty-state">Tidak ada booking hari lain</td>
+                                        <td colspan="5" class="empty-state">Tidak ada booking hari lain</td>
                                     </tr>
                                 @endforelse
                             </tbody>

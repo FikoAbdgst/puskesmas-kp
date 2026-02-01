@@ -36,9 +36,10 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::post('/toggle-open', [AdminController::class, 'toggleOpen'])->name('admin.toggle-open'); // Tambahan
+    Route::post('/toggle-open', [AdminController::class, 'toggleOpen'])->name('admin.toggle-open');
     Route::get('/pelayanan', [AdminController::class, 'pelayanan'])->name('admin.pelayanan');
     Route::post('/verifikasi/{id}', [AdminController::class, 'verifikasi'])->name('admin.verifikasi');
+    Route::post('/tolak/{id}', [AdminController::class, 'tolak'])->name('admin.tolak');
     Route::post('/periksa/{id}', [AdminController::class, 'prosesPeriksa'])->name('admin.periksa');
     Route::get('/laporan', [AdminController::class, 'laporan'])->name('admin.laporan');
     Route::post('/admin/pendaftaran/{id}/tolak', [AdminController::class, 'tolak'])->name('admin.tolak');
