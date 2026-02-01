@@ -8,10 +8,20 @@
         <td><small>{{ $p->keluhan }}</small></td>
         <td><small>{{ $p->tanggal_kunjungan }}</small></td>
         <td>
-            <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
-                @csrf
-                <button type="submit" class="btn btn-validasi btn-sm">✅ Terima Booking</button>
-            </form>
+            <div class="d-flex gap-2">
+                {{-- Tombol Terima / Verifikasi --}}
+                <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-validasi btn-sm">✅ Terima</button>
+                </form>
+
+                {{-- Tombol Tolak (BARU) --}}
+                <form action="{{ route('admin.tolak', $p->id) }}" method="POST"
+                    onsubmit="return confirm('Yakin ingin menolak pendaftaran ini?');">
+                    @csrf
+                    <button type="submit" class="btn btn-danger btn-sm">❌ Tolak</button>
+                </form>
+            </div>
         </td>
     </tr>
 @empty

@@ -25,35 +25,18 @@ class PendaftaranController extends Controller
             'tanggal_kunjungan' => 'required|date|after_or_equal:today',
         ]);
 
-        $today = date('Y-m-d');
-        $isToday = $request->tanggal_kunjungan == $today;
-
-        // Jika daftar untuk hari ini, cek apakah Puskesmas masih buka
-        if ($isToday) {
-            $isOpen = Setting::where('key', 'is_open')->first()->value;
-            if ($isOpen == '0') {
-                return back()->with('error', 'Maaf, pendaftaran untuk hari ini sudah ditutup.');
-            }
-        }
-
-        $count = Pendaftaran::where('poli_id', $request->poli_id)
-            ->where('tanggal_kunjungan', $request->tanggal_kunjungan)
-            ->count();
-
-        $poli = Poli::find($request->poli_id);
-        $prefix = strtoupper(substr($poli->nama_poli, 0, 1));
-        $nomorAntrian = $prefix . '-' . str_pad($count + 1, 2, '0', STR_PAD_LEFT);
 
         Pendaftaran::create([
             'user_id' => Auth::id(),
             'poli_id' => $request->poli_id,
             'tanggal_kunjungan' => $request->tanggal_kunjungan,
-            'nomor_antrian' => $nomorAntrian,
+            'nomor_antrian' => null, // Set null, nanti diisi admin saat verifikasi
             'keluhan' => $request->keluhan,
             'status' => 'Menunggu',
         ]);
 
-        return redirect()->route('home')->with('success', 'Berhasil mendaftar. Nomor Antrian: ' . $nomorAntrian);
+        // Pesan sukses diubah, tidak lagi menampilkan nomor antrian
+        return redirect()->route('home')->with('success', 'Berhasil mendaftar. Mohon tunggu verifikasi admin untuk mendapatkan Nomor Antrian.');
     }
 
     public function riwayat()

@@ -22,10 +22,19 @@
                                                 {{ $p->nomor_antrian }}</small></td>
                                         <td><span class="badge badge-info">{{ $p->poli->nama_poli }}</span></td>
                                         <td>
-                                            <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
-                                                @csrf
-                                                <button class="btn btn-success btn-sm">Verifikasi</button>
-                                            </form>
+                                            <div class="d-flex gap-1">
+                                                <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
+                                                    @csrf
+                                                    <button class="btn btn-success btn-sm">Verifikasi</button>
+                                                </form>
+
+                                                {{-- Tombol Tolak --}}
+                                                <form action="{{ route('admin.tolak', $p->id) }}" method="POST"
+                                                    onsubmit="return confirm('Tolak pasien ini?');">
+                                                    @csrf
+                                                    <button class="btn btn-danger btn-sm">Tolak</button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty

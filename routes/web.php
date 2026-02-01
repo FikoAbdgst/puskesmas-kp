@@ -29,6 +29,7 @@ Route::middleware(['auth'])->group(function () {
     // API Routes
     Route::get('/api/riwayat-terbaru', [PendaftaranController::class, 'getRiwayatJson'])->name('pendaftaran.json');
     Route::get('/api/live-antrian/{poli_id}', [PendaftaranController::class, 'getLiveAntrianJson']);
+    // Tambahkan ini di dalam group middleware admin/auth Anda
 });
 
 // routes/web.php
@@ -40,6 +41,8 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::post('/verifikasi/{id}', [AdminController::class, 'verifikasi'])->name('admin.verifikasi');
     Route::post('/periksa/{id}', [AdminController::class, 'prosesPeriksa'])->name('admin.periksa');
     Route::get('/laporan', [AdminController::class, 'laporan'])->name('admin.laporan');
+    Route::post('/admin/pendaftaran/{id}/tolak', [AdminController::class, 'tolak'])->name('admin.tolak');
+
 
     // Tambahkan route ini:
     Route::get('/api/pending-terbaru', [AdminController::class, 'getPendingJson'])->name('admin.pending.json');

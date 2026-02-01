@@ -37,6 +37,22 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'pending_today', 'pending_others', 'isOpen'));
     }
 
+    // --- PERBAIKAN: Method pelayanan ditambahkan di sini ---
+    public function pelayanan()
+    {
+        // Mengambil data untuk halaman /admin/pelayanan
+        $pending = Pendaftaran::where('status', 'Menunggu')
+            ->with(['poli', 'user'])
+            ->orderBy('tanggal_kunjungan', 'asc') // Urutkan berdasarkan tanggal kunjungan terdekat
+            ->get();
+
+        $periksa = Pendaftaran::where('status', 'Dipanggil')
+            ->with(['poli', 'user'])
+            ->get();
+
+        return view('admin.pelayanan', compact('pending', 'periksa'));
+    }
+
     public function toggleOpen()
     {
         $setting = Setting::where('key', 'is_open')->first();
@@ -74,26 +90,58 @@ class AdminController extends Controller
         }
     }
 
+    // --- UPDATE: Verifikasi dengan Generate Nomor Antrian ---
     public function verifikasi($id)
     {
         $pendaftaran = Pendaftaran::findOrFail($id);
+
+        // 1. Generate Nomor Antrian jika belum ada
+        if ($pendaftaran->nomor_antrian == null) {
+            // Hitung jumlah pasien yang SUDAH diverifikasi (punya nomor) pada hari & poli tersebut
+            $count = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
+                ->where('tanggal_kunjungan', $pendaftaran->tanggal_kunjungan)
+                ->whereNotNull('nomor_antrian')
+                ->count();
+
+            $poli = Poli::find($pendaftaran->poli_id);
+            // Ambil huruf depan nama poli (misal: Umum -> U)
+            $prefix = strtoupper(substr($poli->nama_poli, 0, 1));
+            // Format nomor: U-01, U-02, dst.
+            $nomorAntrian = $prefix . '-' . str_pad($count + 1, 2, '0', STR_PAD_LEFT);
+
+            $pendaftaran->nomor_antrian = $nomorAntrian;
+        }
+
+        // 2. Tentukan Status (Dipanggil atau Terverifikasi)
         $isOpen = Setting::where('key', 'is_open')->first()->value;
 
-        // Jika puskesmas buka DAN tidak ada yang sedang dipanggil di poli tersebut
+        // Cek apakah poli sedang sibuk hari ini
         $isPoliBusy = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
             ->where('tanggal_kunjungan', date('Y-m-d'))
             ->where('status', 'Dipanggil')
             ->exists();
 
+        // Jika Buka DAN Poli Kosong DAN Tanggal Kunjungan adalah Hari Ini -> Langsung Panggil
         if ($isOpen == '1' && !$isPoliBusy && $pendaftaran->tanggal_kunjungan == date('Y-m-d')) {
             $pendaftaran->status = 'Dipanggil';
         } else {
-            // Jika tutup atau sudah ada pasien di dalam, status jadi Terverifikasi (menunggu giliran)
+            // Selain itu masuk antrian (Terverifikasi)
             $pendaftaran->status = 'Terverifikasi';
         }
 
         $pendaftaran->save();
-        return back()->with('success', 'Pasien berhasil diverifikasi.');
+        return back()->with('success', 'Pasien diverifikasi. No Antrian: ' . $pendaftaran->nomor_antrian);
+    }
+
+    // --- TAMBAHAN: Method Tolak ---
+    public function tolak($id)
+    {
+        $pendaftaran = Pendaftaran::findOrFail($id);
+        $pendaftaran->update([
+            'status' => 'Ditolak'
+        ]);
+
+        return back()->with('success', 'Pendaftaran berhasil ditolak.');
     }
 
     public function prosesPeriksa(Request $request, $id)
@@ -112,7 +160,7 @@ class AdminController extends Controller
             $nextQueue = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
                 ->where('tanggal_kunjungan', date('Y-m-d'))
                 ->where('status', 'Terverifikasi')
-                ->orderBy('id', 'asc')
+                ->orderBy('id', 'asc') // Panggil berdasarkan ID (siapa yang daftar duluan yang valid)
                 ->first();
 
             if ($nextQueue) {
