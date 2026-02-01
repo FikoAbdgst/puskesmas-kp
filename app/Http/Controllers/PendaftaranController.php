@@ -17,6 +17,8 @@ class PendaftaranController extends Controller
         return view('pasien.daftar', compact('polis'));
     }
 
+    // app/Http/Controllers/PendaftaranController.php
+
     public function store(Request $request)
     {
         $request->validate([
@@ -25,18 +27,49 @@ class PendaftaranController extends Controller
             'tanggal_kunjungan' => 'required|date|after_or_equal:today',
         ]);
 
+        $tanggalKunjungan = $request->tanggal_kunjungan;
+        $today = date('Y-m-d');
+
+        // Cek operasional jika daftar untuk hari ini
+        if ($tanggalKunjungan == $today) {
+            $isOpen = Setting::where('key', 'is_open')->first()->value ?? '0';
+            if ($isOpen == '0') {
+                return back()->with('error', 'Maaf, pendaftaran untuk hari ini sudah ditutup.');
+            }
+        }
+
+        // AMBIL PREFIX DARI NAMA POLI (Contoh: "Poli Umum" -> "U")
+        $poli = Poli::find($request->poli_id);
+        $prefix = strtoupper(substr($poli->nama_poli, 0, 1));
+
+        // CARI ANTRIAN TERAKHIR DI POLI TERSEBUT PADA TANGGAL TERSEBUT
+        $lastRegistration = Pendaftaran::where('poli_id', $request->poli_id)
+            ->where('tanggal_kunjungan', $tanggalKunjungan)
+            ->orderBy('id', 'desc') // Menggunakan ID untuk akurasi urutan pendaftaran
+            ->first();
+
+        if ($lastRegistration) {
+            // Ambil angka dari nomor antrian terakhir (Contoh: "U-05" -> 5)
+            // explode('-') memecah string berdasarkan tanda pisah
+            $lastNumber = (int) explode('-', $lastRegistration->nomor_antrian)[1];
+            $nextNumber = $lastNumber + 1;
+        } else {
+            // Jika tidak ada pendaftar sebelumnya di tanggal & poli tersebut, mulai dari 1
+            $nextNumber = 1;
+        }
+
+        $nomorAntrian = $prefix . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
 
         Pendaftaran::create([
             'user_id' => Auth::id(),
             'poli_id' => $request->poli_id,
-            'tanggal_kunjungan' => $request->tanggal_kunjungan,
-            'nomor_antrian' => null, // Set null, nanti diisi admin saat verifikasi
+            'tanggal_kunjungan' => $tanggalKunjungan,
+            'nomor_antrian' => $nomorAntrian,
             'keluhan' => $request->keluhan,
             'status' => 'Menunggu',
         ]);
 
-        // Pesan sukses diubah, tidak lagi menampilkan nomor antrian
-        return redirect()->route('home')->with('success', 'Berhasil mendaftar. Mohon tunggu verifikasi admin untuk mendapatkan Nomor Antrian.');
+        return redirect()->route('home')->with('success', 'Berhasil mendaftar. Nomor Antrian Anda: ' . $nomorAntrian);
     }
 
     public function riwayat()

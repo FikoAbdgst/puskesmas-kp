@@ -152,22 +152,26 @@ class AdminController extends Controller
         return back()->with('success', 'Status operasional berhasil diubah.');
     }
 
+    // app/Http/Controllers/AdminController.php
+
     private function panggilAntreanPertamaSemuaPoli()
     {
         $polis = Poli::all();
         $today = date('Y-m-d');
 
         foreach ($polis as $poli) {
+            // Cek apakah sudah ada yang berstatus 'Dipanggil' di poli ini hari ini
             $isAnyBusy = Pendaftaran::where('poli_id', $poli->id)
                 ->where('tanggal_kunjungan', $today)
                 ->where('status', 'Dipanggil')
                 ->exists();
 
             if (!$isAnyBusy) {
+                // Ambil nomor antrian pertama yang sudah terverifikasi
                 $next = Pendaftaran::where('poli_id', $poli->id)
                     ->where('tanggal_kunjungan', $today)
                     ->where('status', 'Terverifikasi')
-                    ->orderBy('id', 'asc')
+                    ->orderBy('nomor_antrian', 'asc') // Urutkan berdasarkan nomor antrian (01, 02, dst)
                     ->first();
 
                 if ($next) {

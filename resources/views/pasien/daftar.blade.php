@@ -147,7 +147,7 @@
 
     <div class="registration-wrapper">
         <div class="form-header">
-            [cite_start]<h1>Booking Antrian Online</h1>
+            <h1>Booking Antrian Online</h1>
             <p>Dapatkan nomor antrian tanpa harus mengantri secara fisik [cite: 18]</p>
         </div>
 
@@ -158,14 +158,7 @@
                     <div class="alert alert-danger mb-4">{{ session('error') }}</div>
                 @endif
 
-                <div class="info-alert">
-                    <div class="info-alert-icon">ℹ️</div>
-                    <p class="info-alert-text">
-                        <strong>Ketentuan Booking</strong>
-                        [cite_start]Pendaftaran diproses berdasarkan kuota harian tiap poliklinik[cite: 9].
-                        [cite_start]Nomor antrian otomatis dihasilkan setelah Anda mengirim form ini[cite: 11].
-                    </p>
-                </div>
+
 
                 <form action="{{ route('pendaftaran.store') }}" method="POST">
                     @csrf
@@ -203,7 +196,7 @@
                                 <option value="">-- Pilih Poliklinik --</option>
                                 @foreach ($polis as $poli)
                                     <option value="{{ $poli->id }}">
-                                        {{ $poli->nama_poli }} (Sisa Kuota: {{ $poli->kuota }}) </option>
+                                        {{ $poli->nama_poli }} </option>
                                 @endforeach
                             </select>
                         </div>
