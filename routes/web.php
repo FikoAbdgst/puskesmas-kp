@@ -29,7 +29,8 @@ Route::middleware(['auth'])->group(function () {
     // API Routes
     Route::get('/api/riwayat-terbaru', [PendaftaranController::class, 'getRiwayatJson'])->name('pendaftaran.json');
     Route::get('/api/live-antrian/{poli_id}', [PendaftaranController::class, 'getLiveAntrianJson']);
-    // Tambahkan ini di dalam group middleware admin/auth Anda
+    Route::get('/info-jadwal', [DokterController::class, 'jadwalPublik'])->name('pasien.jadwal');
+    Route::get('/info-poli', [PoliController::class, 'poliPublik'])->name('pasien.poli');
 });
 
 // routes/web.php

@@ -2,511 +2,314 @@
 
 @section('content')
     <style>
-        .patient-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        /* Welcome Banner */
-        .welcome-banner {
-            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-            border-radius: 20px;
-            padding: 3rem 2.5rem;
-            margin-bottom: 3rem;
-            color: white;
-            position: relative;
+        /* --- 1. LIVE QUEUE STYLES (Tetap Menonjol) --- */
+        .live-queue-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(27, 94, 32, 0.25);
-        }
-
-        .welcome-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-        }
-
-        .welcome-banner::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 50%;
-        }
-
-        .welcome-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .welcome-content h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.5px;
-        }
-
-        .welcome-content p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-            margin: 0;
-        }
-
-        /* Quick Actions Grid */
-        .quick-actions {
-            margin-bottom: 3rem;
-        }
-
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-
-        .action-card {
             background: white;
-            border-radius: 20px;
-            padding: 0;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
+            position: relative;
+        }
+
+        .live-queue-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .live-header {
+            background: linear-gradient(135deg, var(--primary-green, #2e7d32) 0%, #1b5e20 100%);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .live-body {
+            padding: 1.25rem;
+            text-align: center;
             display: flex;
             flex-direction: column;
-        }
-
-        .action-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .action-card-top {
-            padding: 2.5rem 2rem 2rem;
-            flex-grow: 1;
-            background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
-        }
-
-        .action-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
-        }
-
-        .action-card.featured .action-icon {
-            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
-        }
-
-        .action-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1b1b1b;
-            margin-bottom: 0.75rem;
-            line-height: 1.3;
-        }
-
-        .action-description {
-            color: #666;
-            line-height: 1.7;
-            margin: 0;
-            font-size: 0.95rem;
-        }
-
-        .action-card-bottom {
-            padding: 1.75rem 2rem;
-            background: white;
-        }
-
-        .action-btn {
-            display: block;
-            width: 100%;
-            padding: 1rem 1.5rem;
-            background: white;
-            color: #1b5e20;
-            border: 2px solid #1b5e20;
-            border-radius: 12px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .action-btn:hover {
-            background: #1b5e20;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(27, 94, 32, 0.25);
-        }
-
-        .action-card.featured .action-btn {
-            background: #1b5e20;
-            color: white;
-            border-color: #1b5e20;
-        }
-
-        .action-card.featured .action-btn:hover {
-            background: #144a19;
-            border-color: #144a19;
-            box-shadow: 0 6px 16px rgba(20, 74, 25, 0.35);
-        }
-
-        /* Registration Status Section */
-        .status-section {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-        }
-
-        .status-header {
-            padding: 2rem 2.5rem;
-            background: linear-gradient(to right, #fafafa 0%, #f5f5f5 100%);
-        }
-
-        .status-header h4 {
-            margin: 0;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1b1b1b;
-        }
-
-        .status-body {
-            padding: 0;
-        }
-
-        .status-table {
-            width: 100%;
-            margin: 0;
-        }
-
-        .status-table thead th {
-            background: #fafafa;
-            padding: 1.5rem 2.5rem;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #666;
-            border-bottom: 2px solid #f0f0f0;
-            letter-spacing: 0.5px;
-        }
-
-        .status-table tbody td {
-            padding: 1.75rem 2.5rem;
-            border-bottom: 1px solid #f8f8f8;
-            color: #333;
-            vertical-align: middle;
-        }
-
-        .status-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .status-table tbody tr:hover {
-            background: #fafafa;
-        }
-
-        .status-date {
-            font-weight: 600;
-            color: #1b1b1b;
-        }
-
-        .status-poli {
-            color: #1b5e20;
-            font-weight: 600;
-        }
-
-        .status-keluhan {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .status-badge {
-            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.25rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            white-space: nowrap;
         }
 
-        /* Update Warna Status Sesuai Dokumen Desain */
-        .status-pending {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        /* Menunggu */
-        .status-verified {
-            background: #e8f5e9;
+        .live-number {
+            font-size: 3.5rem;
+            font-weight: 800;
             color: #2e7d32;
+            line-height: 1;
+            margin: 0.5rem 0;
         }
 
-        /* Diterima */
-        .status-cancelled {
-            background: #ffebee;
-            color: #c62828;
+        .live-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #888;
+            font-weight: 500;
         }
 
-        /* Dibatalkan */
-        .status-done {
-            background: #f5f5f5;
-            color: #616161;
-        }
-
-        /* Selesai */
-
-        .empty-state {
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            opacity: 0.2;
-            margin-bottom: 1rem;
-        }
-
-        .empty-text {
-            color: #999;
-            font-size: 1rem;
-        }
-
-        /* Loading State */
-        .loading-state {
-            padding: 3rem 2rem;
-            text-align: center;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1b5e20;
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #e53935;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 6px;
+            animation: pulse-animation 1.5s infinite;
         }
 
-        @keyframes spin {
+        @keyframes pulse-animation {
             0% {
-                transform: rotate(0deg);
+                box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(229, 57, 53, 0);
             }
 
             100% {
-                transform: rotate(360deg);
+                box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);
             }
         }
 
-        .loading-text {
-            margin-top: 1rem;
-            color: #666;
+        /* --- 2. ACTION AREA (DAFTAR BUTTON & MENU LAIN) --- */
+        .action-section {
+            margin-bottom: 2.5rem;
         }
 
-        /* Responsive Design (Keep Original) */
-        @media (max-width: 768px) {
-            .welcome-banner {
-                padding: 2rem 1.5rem;
-            }
+        /* Tombol Daftar yang SANGAT MENONJOL */
+        .daftar-banner {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            border: 1px solid #a5d6a7;
+            height: 100%;
+            transition: transform 0.2s;
+        }
 
-            .welcome-content h1 {
-                font-size: 1.5rem;
-            }
+        .daftar-banner:hover {
+            transform: scale(1.01);
+        }
 
-            .actions-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
+        .daftar-content h3 {
+            color: #1b5e20;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
 
-            .status-table thead {
-                display: none;
-            }
+        .daftar-content p {
+            color: #388e3c;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
 
-            .status-table tbody tr {
-                display: block;
-                margin-bottom: 1rem;
-                border: 1px solid #f0f0f0;
-                border-radius: 16px;
-                overflow: hidden;
-                background: white;
-            }
+        .btn-daftar-cta {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+            color: white;
+            padding: 0.85rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            box-shadow: 0 8px 20px rgba(27, 94, 32, 0.3);
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
 
-            .status-table tbody td {
-                display: block;
-                padding: 1rem 1.5rem;
-                text-align: left;
-                border: none;
-            }
+        .btn-daftar-cta:hover {
+            background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(27, 94, 32, 0.4);
+            color: white;
+        }
 
-            .status-table tbody td:before {
-                content: attr(data-label);
-                font-weight: 700;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                color: #666;
-                display: block;
-                margin-bottom: 0.5rem;
-            }
+        /* Kartu Menu Sekunder (Jadwal & Poli) - Tampilan Minimalis/Tidak Menonjol */
+        .secondary-menu-card {
+            background: #fff;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            color: #555;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
 
-            .status-table tbody td:first-child {
-                background: #fafafa;
-                font-weight: 600;
-            }
+        .secondary-menu-card:hover {
+            background: #fafafa;
+            border-color: #ddd;
+            color: #2e7d32;
+            transform: translateY(-2px);
+        }
+
+        .secondary-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .secondary-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* --- 3. RIWAYAT TABLE --- */
+        .history-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        .history-header {
+            background: white;
+            padding: 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
         }
     </style>
 
-    <div class="patient-container">
-        <div class="welcome-banner">
-            <div class="welcome-content">
-                <h1>Selamat Datang, {{ Auth::user()->name }}</h1>
-                <p>Akses layanan kesehatan dengan mudah dan cepat</p>
+    <div class="container py-4">
+
+        {{-- BAGIAN 1: LIVE MONITOR ANTREAN (Tetap di Atas) --}}
+        <div class="row mb-4">
+            <div class="col-12 mb-3 d-flex align-items-center">
+                <h5 class="fw-bold text-dark m-0">
+                    <span class="pulse-dot"></span>Live Antrian Saat Ini
+                </h5>
+            </div>
+
+            @foreach ($live_antrian as $poli)
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="live-queue-card">
+                        <div class="live-header">{{ $poli->nama_poli }}</div>
+                        <div class="live-body">
+                            <span class="live-label">Dipanggil</span>
+                            <span class="live-number" id="poli-{{ $poli->id }}">
+                                {{ $poli->nomor_sekarang }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        {{-- BAGIAN 2: MENU UTAMA (DAFTAR) & SEKUNDER (JADWAL/POLI) --}}
+        <div class="row action-section g-3">
+            {{-- Tombol Daftar (Besar & Dominan) --}}
+            <div class="col-lg-8">
+                <div class="daftar-banner">
+                    <div class="daftar-content">
+                        <h3>Ingin Berobat?</h3>
+                        <p>Ambil nomor antrian Anda sekarang secara online.</p>
+                    </div>
+                    <a href="{{ route('pendaftaran.create') }}" class="btn-daftar-cta">
+                        + Daftar Sekarang
+                    </a>
+                </div>
+            </div>
+
+            {{-- Menu Sekunder --}}
+            <div class="col-lg-2 col-6">
+                {{-- Ubah link ini --}}
+                <a href="{{ route('pasien.jadwal') }}" class="secondary-menu-card">
+                    <span class="secondary-icon">📅</span>
+                    <span class="secondary-title">Jadwal Dokter</span>
+                </a>
+            </div>
+            <div class="col-lg-2 col-6">
+                {{-- Ubah link ini --}}
+                <a href="{{ route('pasien.poli') }}" class="secondary-menu-card">
+                    <span class="secondary-icon">🏥</span>
+                    <span class="secondary-title">Info Poli</span>
+                </a>
             </div>
         </div>
 
-        <div class="quick-actions">
-            <div class="actions-grid">
-                <div class="action-card featured">
-                    <div class="action-card-top">
-                        <div class="action-icon">📋</div>
-                        <h3 class="action-title">Pendaftaran Pasien</h3>
-                        <p class="action-description">Daftarkan diri Anda untuk mendapatkan layanan kesehatan di poliklinik
-                            yang tersedia</p>
+        {{-- BAGIAN 3: RIWAYAT SAYA --}}
+        <div class="row">
+            <div class="col-12">
+                <div class="card history-card">
+                    <div class="history-header">
+                        <h5 class="fw-bold m-0">📋 Riwayat Pendaftaran Saya</h5>
                     </div>
-                    <div class="action-card-bottom">
-                        <a href="{{ route('pendaftaran.create') }}" class="action-btn">Daftar Sekarang</a>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-secondary">
+                                    <tr>
+                                        <th class="ps-4">Tanggal</th>
+                                        <th>Poli Tujuan</th>
+                                        <th>Keluhan</th>
+                                        <th>No. Antrian</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($riwayat as $item)
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">
+                                                {{ \Carbon\Carbon::parse($item->tanggal_kunjungan)->format('d M Y') }}</td>
+                                            <td><span
+                                                    class="badge bg-light text-dark border">{{ $item->poli->nama_poli }}</span>
+                                            </td>
+                                            <td><small class="text-muted">{{ Str::limit($item->keluhan, 40) }}</small></td>
+                                            <td>
+                                                @if ($item->nomor_antrian)
+                                                    <span
+                                                        class="fs-5 fw-bold text-primary">{{ $item->nomor_antrian }}</span>
+                                                @else
+                                                    <span class="text-muted small">Belum ada</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($item->status == 'Menunggu Verifikasi')
+                                                    <span class="badge bg-warning text-dark">Menunggu Verifikasi</span>
+                                                @elseif($item->status == 'Terverifikasi')
+                                                    <span class="badge bg-info text-dark">Menunggu Dipanggil</span>
+                                                @elseif($item->status == 'Dipanggil')
+                                                    <span class="badge bg-success animate__animated animate__flash">Sedang
+                                                        Dipanggil</span>
+                                                @elseif($item->status == 'Selesai')
+                                                    <span class="badge bg-secondary">Selesai</span>
+                                                @elseif($item->status == 'Ditolak')
+                                                    <span class="badge bg-danger">Ditolak</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5 text-muted">
+                                                <div style="opacity: 0.5; font-size: 3rem; margin-bottom: 1rem;">📭</div>
+                                                Belum ada riwayat pendaftaran. Silakan daftar baru.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-
-                <div class="action-card">
-                    <div class="action-card-top">
-                        <div class="action-icon">👨‍⚕️</div>
-                        <h3 class="action-title">Jadwal Dokter</h3>
-                        <p class="action-description">Lihat jadwal praktik dokter untuk merencanakan kunjungan Anda dengan
-                            lebih baik</p>
-                    </div>
-                    <div class="action-card-bottom">
-                        <a href="{{ route('pasien.jadwal') }}" class="action-btn">Lihat Jadwal</a>
-                    </div>
-                </div>
-
-                <div class="action-card">
-                    <div class="action-card-top">
-                        <div class="action-icon">🏥</div>
-                        <h3 class="action-title">Informasi Poliklinik</h3>
-                        <p class="action-description">Temukan informasi lengkap tentang layanan poliklinik yang tersedia</p>
-                    </div>
-                    <div class="action-card-bottom">
-                        <a href="{{ route('pasien.poli') }}" class="action-btn">Lihat Informasi</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="status-section">
-            <div class="status-header">
-                <h4>Riwayat Pendaftaran</h4>
-            </div>
-            <div class="status-body">
-                <div class="table-responsive">
-                    <table class="status-table">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Poliklinik</th>
-                                <th>Nomor Anda</th>
-                                <th>Antrian Live</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-status-pasien">
-                            <tr>
-                                <td colspan="5" class="text-center py-4">Memuat data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function refreshPasienStatus() {
-            $.ajax({
-                url: "{{ route('pendaftaran.json') }}",
-                type: "GET",
-                success: function(data) {
-                    let rows = '';
-                    if (data.length > 0) {
-                        data.forEach(function(r) {
-                            let badgeClass = getBadgeClass(r.status);
-
-                            rows += `
-                            <tr>
-                                <td data-label="Tanggal" class="status-date">${r.tanggal_formatted}</td>
-                                <td data-label="Poliklinik" class="status-poli">${r.nama_poli}</td>
-                                <td data-label="Nomor Anda" class="fw-bold text-dark">${r.nomor_antrian || '-'}</td>
-                                <td data-label="Antrian Live">
-                                    <span class="text-danger font-weight-bold" data-poli-id="${r.poli_id}" name="live-queue-home">--</span>
-                                </td>
-                                <td data-label="Status">
-                                    <span class="status-badge ${badgeClass}">${r.status}</span>
-                                </td>
-                            </tr>`;
-                        });
-                    } else {
-                        rows =
-                            `<tr><td colspan="5" class="text-center py-4">Belum ada riwayat pendaftaran</td></tr>`;
-                    }
-                    $('#table-status-pasien').html(rows);
-                    updateLiveQueuesHome();
-                }
-            });
-        }
-
-        function updateLiveQueuesHome() {
-            $('[name="live-queue-home"]').each(function() {
-                const el = $(this);
-                const poliId = el.data('poli-id');
-                $.get("{{ url('/api/live-antrian') }}/" + poliId, function(data) {
-                    el.text(data.nomor_sekarang);
-                });
-            });
-        }
-
-        function getBadgeClass(status) {
-            switch (status) {
-                case 'Menunggu':
-                    return 'status-pending';
-                case 'Dipanggil':
-                    return 'status-verified';
-                case 'Selesai':
-                    return 'status-done';
-                default:
-                    return 'status-cancelled';
-            }
-        }
-
-        $(document).ready(function() {
-            refreshPasienStatus();
-            setInterval(refreshPasienStatus, 15000);
-        });
+        setInterval(function() {
+            // location.reload();
+        }, 10000);
     </script>
 @endsection

@@ -46,4 +46,11 @@ class PoliController extends Controller
         $poli->delete();
         return back()->with('success', 'Data Poli berhasil dihapus');
     }
+    // app/Http/Controllers/PoliController.php
+
+    public function poliPublik()
+    {
+        $polis = Poli::all();
+        return view('pasien.poli', compact('polis'));
+    }
 }

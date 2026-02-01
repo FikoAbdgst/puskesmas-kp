@@ -46,4 +46,10 @@ class DokterController extends Controller
         $dokter->delete();
         return back()->with('success', 'Data Dokter berhasil dihapus');
     }
+    public function jadwalPublik()
+    {
+        // Mengambil data dokter beserta nama polinya
+        $dokters = Dokter::with('poli')->get();
+        return view('pasien.jadwal', compact('dokters'));
+    }
 }
