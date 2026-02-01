@@ -2,6 +2,7 @@
 
 @section('content')
     <style>
+        /* CSS ASLI ANDA TETAP DI SINI */
         .admin-sidebar {
             background: white;
             border-radius: 12px;
@@ -116,6 +117,7 @@
             border-radius: 12px;
             box-shadow: var(--shadow-sm);
             overflow: hidden;
+            margin-bottom: 2rem;
         }
 
         .data-table-header {
@@ -124,6 +126,9 @@
             padding: 1.25rem 1.5rem;
             font-weight: 600;
             font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .table-container {
@@ -190,77 +195,91 @@
             opacity: 0.3;
             margin-bottom: 1rem;
         }
+
+        /* Tambahan Baru untuk Status Buka/Tutup */
+        .status-banner {
+            background: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--primary-green);
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
     </style>
 
     <div class="row g-4">
-        <!-- Sidebar -->
         <div class="col-lg-3">
             <div class="admin-sidebar">
-                <div class="sidebar-header">
-                    PANEL ADMINISTRASI
-                </div>
-
+                <div class="sidebar-header">PANEL ADMINISTRASI</div>
                 <div class="sidebar-section-title">Menu Utama</div>
-                <a href="{{ route('admin.dashboard') }}"
-                    class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <span class="icon">✅</span>
-                    <span>Verifikasi Pendaftaran</span>
+                <a href="{{ route('admin.dashboard') }}" class="sidebar-link active">
+                    <span class="icon">✅</span><span>Verifikasi Pendaftaran</span>
                 </a>
-                <a href="{{ route('admin.pelayanan') }}"
-                    class="sidebar-link {{ request()->routeIs('admin.pelayanan') ? 'active' : '' }}">
-                    <span class="icon">🩺</span>
-                    <span>Pelayanan Dokter</span>
+                <a href="{{ route('admin.pelayanan') }}" class="sidebar-link">
+                    <span class="icon">🩺</span><span>Pelayanan Dokter</span>
                 </a>
-
                 <div class="sidebar-section-title">Data Master</div>
-                <a href="{{ route('poli.index') }}"
-                    class="sidebar-link {{ request()->routeIs('poli.index') ? 'active' : '' }}">
-                    <span class="icon">🏥</span>
-                    <span>Data Poli</span>
+                <a href="{{ route('poli.index') }}" class="sidebar-link">
+                    <span class="icon">🏥</span><span>Data Poli</span>
                 </a>
-                <a href="{{ route('dokter.index') }}"
-                    class="sidebar-link {{ request()->routeIs('dokter.index') ? 'active' : '' }}">
-                    <span class="icon">👨‍⚕️</span>
-                    <span>Data Dokter</span>
+                <a href="{{ route('dokter.index') }}" class="sidebar-link">
+                    <span class="icon">👨‍⚕️</span><span>Data Dokter</span>
                 </a>
-
                 <div class="sidebar-section-title">Laporan</div>
-                <a href="{{ route('admin.laporan') }}"
-                    class="sidebar-link {{ request()->routeIs('admin.laporan') ? 'active' : '' }}">
-                    <span class="icon">📄</span>
-                    <span>Laporan Pelayanan</span>
+                <a href="{{ route('admin.laporan') }}" class="sidebar-link">
+                    <span class="icon">📄</span><span>Laporan Pelayanan</span>
                 </a>
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="col-lg-9">
-            <!-- Statistics Cards -->
+            <div class="status-banner">
+                <div>
+                    <span class="status-label">Status Puskesmas: </span>
+                    @if ($isOpen == '1')
+                        <span class="badge bg-success">BUKA</span>
+                    @else
+                        <span class="badge bg-danger">TUTUP</span>
+                    @endif
+                </div>
+                <form action="{{ route('admin.toggle-open') }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        class="btn {{ $isOpen == '1' ? 'btn-outline-danger' : 'btn-success' }} btn-sm fw-bold">
+                        {{ $isOpen == '1' ? '🔴 Tutup Puskesmas' : '🟢 Buka Puskesmas' }}
+                    </button>
+                </form>
+            </div>
+
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <div class="stat-card warning">
-                        <h3 id="stat-pending">{{ $stats['pending'] }}</h3>
-                        <small>Menunggu Verifikasi</small>
+                        <h3 id="stat-pending">{{ $stats['pending'] }}</h3><small>Menunggu Verifikasi</small>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card primary">
-                        <h3 id="stat-verified">{{ $stats['verified'] }}</h3>
-                        <small>Siap Diperiksa</small>
+                        <h3 id="stat-verified">{{ $stats['verified'] }}</h3><small>Siap Diperiksa</small>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card success">
-                        <h3 id="stat-done">{{ $stats['done'] }}</h3>
-                        <small>Selesai Dilayani</small>
+                        <h3 id="stat-done">{{ $stats['done'] }}</h3><small>Selesai Dilayani</small>
                     </div>
                 </div>
             </div>
 
-            <!-- Data Table -->
             <div class="data-table-wrapper">
                 <div class="data-table-header">
-                    📋 Daftar Pendaftaran Pasien (Perlu Verifikasi)
+                    <span>📋 Antrean Hari Ini ({{ date('d M Y') }})</span>
                 </div>
                 <div class="table-container">
                     <div class="table-responsive">
@@ -270,12 +289,66 @@
                                     <th>Pasien</th>
                                     <th>Poli</th>
                                     <th>Keluhan</th>
-                                    <th>Tanggal</th>
+                                    <th>No. Antrean</th>
                                     <th style="width: 150px;">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-pending-admin">
-                                @include('admin.partials._pending_table')
+                            <tbody id="table-pending-today">
+                                @forelse($pending_today as $p)
+                                    <tr>
+                                        <td>
+                                            <div><strong style="color: #1b5e20;">{{ $p->user->name }}</strong></div>
+                                            <small class="text-muted">NIK: {{ $p->user->nik ?? '-' }}</small>
+                                        </td>
+                                        <td><span class="badge bg-success badge-poli">{{ $p->poli->nama_poli }}</span></td>
+                                        <td><small>{{ $p->keluhan }}</small></td>
+                                        <td><strong>{{ $p->nomor_antrian }}</strong></td>
+                                        <td>
+                                            <form action="{{ route('admin.verifikasi', $p->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-validasi btn-sm">✅ Verifikasi</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Tidak ada antrean hari ini</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-wrapper">
+                <div class="data-table-header" style="background: #6c757d;">
+                    <span>📅 Booking untuk Hari Mendatang</span>
+                </div>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Pasien</th>
+                                    <th>Poli</th>
+                                    <th>Tanggal Kunjungan</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pending_others as $p)
+                                    <tr>
+                                        <td><strong>{{ $p->user->name }}</strong></td>
+                                        <td>{{ $p->poli->nama_poli }}</td>
+                                        <td>{{ date('d-m-Y', strtotime($p->tanggal_kunjungan)) }}</td>
+                                        <td><span class="badge bg-secondary">Menunggu</span></td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="empty-state">Tidak ada booking hari lain</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -283,61 +356,4 @@
             </div>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        let lastDataCount = {{ $pending->count() }};
-
-        function checkNewRegistration() {
-            $.ajax({
-                url: "{{ route('admin.pending.json') }}",
-                type: "GET",
-                success: function(response) {
-                    $('#stat-pending').text(response.stats.pending);
-                    $('#stat-verified').text(response.stats.verified);
-                    $('#stat-done').text(response.stats.done);
-
-                    if (response.data.length > lastDataCount) {
-                        console.log("Ada pendaftaran baru!");
-                    }
-
-                    lastDataCount = response.data.length;
-
-                    let rows = '';
-                    if (response.data.length > 0) {
-                        response.data.forEach(function(p) {
-                            rows += `
-                            <tr>
-                                <td>
-                                    <div><strong style="color: #1b5e20;">${p.user.name}</strong></div>
-                                    <small class="text-muted">NIK: ${p.user.nik || '-'}</small>
-                                </td>
-                                <td><span class="badge bg-success badge-poli">${p.poli.nama_poli}</span></td>
-                                <td><small>${p.keluhan}</small></td>
-                                <td><small>${p.tanggal_kunjungan}</small></td>
-                                <td>
-                                    <form action="/admin/verifikasi/${p.id}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-validasi btn-sm">✅ Validasi</button>
-                                    </form>
-                                </td>
-                            </tr>`;
-                        });
-                    } else {
-                        rows = `
-                            <tr>
-                                <td colspan="5" class="empty-state">
-                                    <div class="empty-state-icon">📋</div>
-                                    <div>Tidak ada pendaftaran yang perlu diverifikasi</div>
-                                </td>
-                            </tr>`;
-                    }
-
-                    $('#table-pending-admin').html(rows);
-                }
-            });
-        }
-
-        setInterval(checkNewRegistration, 3000);
-    </script>
 @endsection

@@ -15,14 +15,13 @@ class PoliController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Tambahkan validasi kuota
+        // Ubah 'required' menjadi 'nullable' karena input kuota tidak ada di view
         $validatedData = $request->validate([
             'nama_poli' => 'required|string|max:255',
-            'kuota'     => 'required|integer|min:1', // Tambahkan ini
+            'kuota'     => 'nullable|integer|min:1',
             'deskripsi' => 'nullable|string'
         ]);
 
-        // 2. Data kuota sekarang akan ikut tersimpan secara otomatis
         Poli::create($validatedData);
 
         return back()->with('success', 'Data Poli berhasil ditambahkan');
@@ -30,10 +29,10 @@ class PoliController extends Controller
 
     public function update(Request $request, Poli $poli)
     {
-        // Lakukan hal yang sama pada fungsi update
+        // Sesuaikan juga fungsi update agar tidak error saat simpan perubahan
         $validatedData = $request->validate([
             'nama_poli' => 'required|string|max:255',
-            'kuota'     => 'required|integer|min:1', // Tambahkan ini
+            'kuota'     => 'nullable|integer|min:1',
             'deskripsi' => 'nullable|string'
         ]);
 

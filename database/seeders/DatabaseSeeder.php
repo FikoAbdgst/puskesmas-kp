@@ -31,5 +31,12 @@ class DatabaseSeeder extends Seeder
             'role' => 'pasien',
             'password' => Hash::make('password'),
         ]);
+        User::create([
+            'name' => 'piko',
+            'email' => 'piko@gmail.com',
+            'nik' => '3201123456780002',
+            'role' => 'pasien',
+            'password' => Hash::make('password'),
+        ]);
     }
 }

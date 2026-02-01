@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('polis', function (Blueprint $table) {
             $table->id();
             $table->string('nama_poli');
-            $table->integer('kuota')->nullable(); // Dibuat nullable karena tidak lagi menjadi pembatas utama
+            // $table->integer('kuota')->nullable(); // Dibuat nullable karena tidak lagi menjadi pembatas utama
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });

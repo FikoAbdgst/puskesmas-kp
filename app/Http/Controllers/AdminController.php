@@ -6,120 +6,120 @@ use App\Models\Pendaftaran;
 use App\Models\Poli;
 use App\Models\Dokter;
 use App\Models\User;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        // Statistik lengkap untuk Dashboard
+        $isOpen = Setting::where('key', 'is_open')->first()->value ?? '0';
+        $today = date('Y-m-d');
+
         $stats = [
             'total_pasien' => User::where('role', '!=', 'admin')->count(),
             'total_poli'   => Poli::count(),
             'total_dokter' => Dokter::count(),
-            // Sesuaikan key dengan view: 'pending', 'verified', dan 'done'
-            'pending'      => Pendaftaran::where('status', 'Menunggu')->where('tanggal_kunjungan', date('Y-m-d'))->count(),
-            'verified'     => Pendaftaran::where('status', 'Terverifikasi')->where('tanggal_kunjungan', date('Y-m-d'))->count(),
-            'done'         => Pendaftaran::where('status', 'Selesai')->where('tanggal_kunjungan', date('Y-m-d'))->count(),
+            'pending'      => Pendaftaran::where('status', 'Menunggu')->where('tanggal_kunjungan', $today)->count(),
+            'verified'     => Pendaftaran::where('status', 'Terverifikasi')->where('tanggal_kunjungan', $today)->count(),
+            'done'         => Pendaftaran::where('status', 'Selesai')->where('tanggal_kunjungan', $today)->count(),
         ];
 
-        // Mengambil data untuk tabel pendaftaran baru di dashboard
-        $pending = Pendaftaran::where('status', 'Menunggu')
-            ->with(['poli', 'user'])
-            ->latest()
-            ->get();
+        // Memisahkan Booking Hari Ini dan Hari Lain
+        $pending_today = Pendaftaran::where('status', 'Menunggu')
+            ->where('tanggal_kunjungan', $today)
+            ->with(['poli', 'user'])->latest()->get();
 
-        return view('admin.dashboard', compact('stats', 'pending'));
+        $pending_others = Pendaftaran::where('status', 'Menunggu')
+            ->where('tanggal_kunjungan', '>', $today)
+            ->with(['poli', 'user'])->latest()->get();
+
+        return view('admin.dashboard', compact('stats', 'pending_today', 'pending_others', 'isOpen'));
     }
 
-    /**
-     * Menampilkan Halaman Pelayanan (Verifikasi & Meja Dokter)
-     */
-    public function pelayanan()
+    public function toggleOpen()
     {
-        $pending = Pendaftaran::where('status', 'Menunggu')
-            ->with(['poli', 'user'])
-            ->latest()
-            ->get();
+        $setting = Setting::where('key', 'is_open')->first();
+        $newState = ($setting->value == '1') ? '0' : '1';
+        $setting->update(['value' => $newState]);
 
-        $periksa = Pendaftaran::where('status', 'Dipanggil')
-            ->with(['poli', 'user'])
-            ->get();
+        // Jika baru dibuka, otomatis panggil urutan pertama di setiap poli yang sudah terverifikasi
+        if ($newState == '1') {
+            $this->panggilAntreanPertamaSemuaPoli();
+        }
 
-        return view('admin.pelayanan', compact('pending', 'periksa'));
+        return back()->with('success', 'Status operasional berhasil diubah.');
     }
 
-    /**
-     * Proses Verifikasi Pendaftaran
-     */
+    private function panggilAntreanPertamaSemuaPoli()
+    {
+        $polis = Poli::all();
+        foreach ($polis as $poli) {
+            $isAnyBusy = Pendaftaran::where('poli_id', $poli->id)
+                ->where('tanggal_kunjungan', date('Y-m-d'))
+                ->where('status', 'Dipanggil')
+                ->exists();
+
+            if (!$isAnyBusy) {
+                $next = Pendaftaran::where('poli_id', $poli->id)
+                    ->where('tanggal_kunjungan', date('Y-m-d'))
+                    ->where('status', 'Terverifikasi')
+                    ->orderBy('id', 'asc')
+                    ->first();
+
+                if ($next) {
+                    $next->update(['status' => 'Dipanggil']);
+                }
+            }
+        }
+    }
+
     public function verifikasi($id)
     {
         $pendaftaran = Pendaftaran::findOrFail($id);
+        $isOpen = Setting::where('key', 'is_open')->first()->value;
 
+        // Jika puskesmas buka DAN tidak ada yang sedang dipanggil di poli tersebut
         $isPoliBusy = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
             ->where('tanggal_kunjungan', date('Y-m-d'))
             ->where('status', 'Dipanggil')
             ->exists();
 
-        // Jika poli kosong langsung masuk meja dokter, jika isi masuk antrean terverifikasi
-        $pendaftaran->status = $isPoliBusy ? 'Terverifikasi' : 'Dipanggil';
-        $pendaftaran->save();
+        if ($isOpen == '1' && !$isPoliBusy && $pendaftaran->tanggal_kunjungan == date('Y-m-d')) {
+            $pendaftaran->status = 'Dipanggil';
+        } else {
+            // Jika tutup atau sudah ada pasien di dalam, status jadi Terverifikasi (menunggu giliran)
+            $pendaftaran->status = 'Terverifikasi';
+        }
 
+        $pendaftaran->save();
         return back()->with('success', 'Pasien berhasil diverifikasi.');
     }
 
-    /**
-     * Selesai Periksa & Panggil Antrean Berikutnya
-     */
     public function prosesPeriksa(Request $request, $id)
     {
-        $request->validate([
-            'catatan_medis' => 'required'
+        $request->validate(['catatan_medis' => 'required']);
+        $pendaftaran = Pendaftaran::findOrFail($id);
+
+        $pendaftaran->update([
+            'status' => 'Selesai',
+            'catatan_medis' => $request->catatan_medis
         ]);
 
-        $pendaftaran = Pendaftaran::findOrFail($id);
-        $pendaftaran->status = 'Selesai';
-        $pendaftaran->catatan_medis = $request->catatan_medis;
-        $pendaftaran->save();
+        // Panggil antrean berikutnya HANYA jika puskesmas masih buka
+        $isOpen = Setting::where('key', 'is_open')->first()->value;
+        if ($isOpen == '1') {
+            $nextQueue = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
+                ->where('tanggal_kunjungan', date('Y-m-d'))
+                ->where('status', 'Terverifikasi')
+                ->orderBy('id', 'asc')
+                ->first();
 
-        // Cari pasien berikutnya yang statusnya 'Terverifikasi' di poli yang sama
-        $nextQueue = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
-            ->where('tanggal_kunjungan', date('Y-m-d'))
-            ->where('status', 'Terverifikasi')
-            ->orderBy('id', 'asc')
-            ->first();
-
-        if ($nextQueue) {
-            $nextQueue->status = 'Dipanggil';
-            $nextQueue->save();
+            if ($nextQueue) {
+                $nextQueue->update(['status' => 'Dipanggil']);
+            }
         }
 
-        return back()->with('success', 'Pemeriksaan selesai. Antrean berikutnya dipanggil.');
-    }
-
-    public function laporan()
-    {
-        $laporan = Pendaftaran::with(['poli', 'user'])->latest()->get();
-        return view('admin.laporan', compact('laporan'));
-    }
-    // app/Http/Controllers/AdminController.php
-
-    public function getPendingJson()
-    {
-        $stats = [
-            'pending'  => Pendaftaran::where('status', 'Menunggu')->where('tanggal_kunjungan', date('Y-m-d'))->count(),
-            'verified' => Pendaftaran::where('status', 'Terverifikasi')->where('tanggal_kunjungan', date('Y-m-d'))->count(),
-            'done'     => Pendaftaran::where('status', 'Selesai')->where('tanggal_kunjungan', date('Y-m-d'))->count(),
-        ];
-
-        $pending = Pendaftaran::where('status', 'Menunggu')
-            ->with(['poli', 'user'])
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'stats' => $stats,
-            'data'  => $pending
-        ]);
+        return back()->with('success', 'Pemeriksaan selesai.');
     }
 }

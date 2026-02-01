@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pendaftaran;
 use App\Models\Poli;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,23 +20,29 @@ class PendaftaranController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nik' => 'required|numeric',
             'poli_id' => 'required|exists:polis,id',
             'keluhan' => 'required',
             'tanggal_kunjungan' => 'required|date|after_or_equal:today',
         ]);
 
-        $poli = Poli::findOrFail($request->poli_id);
+        $today = date('Y-m-d');
+        $isToday = $request->tanggal_kunjungan == $today;
 
-        // Menghitung jumlah pendaftar hari ini untuk menentukan nomor urut
-        $countToday = Pendaftaran::where('poli_id', $request->poli_id)
+        // Jika daftar untuk hari ini, cek apakah Puskesmas masih buka
+        if ($isToday) {
+            $isOpen = Setting::where('key', 'is_open')->first()->value;
+            if ($isOpen == '0') {
+                return back()->with('error', 'Maaf, pendaftaran untuk hari ini sudah ditutup.');
+            }
+        }
+
+        $count = Pendaftaran::where('poli_id', $request->poli_id)
             ->where('tanggal_kunjungan', $request->tanggal_kunjungan)
             ->count();
 
-        // Penomoran otomatis tanpa batasan kuota
+        $poli = Poli::find($request->poli_id);
         $prefix = strtoupper(substr($poli->nama_poli, 0, 1));
-        $nomorUrut = str_pad($countToday + 1, 2, '0', STR_PAD_LEFT);
-        $nomorAntrian = $prefix . '-' . $nomorUrut;
+        $nomorAntrian = $prefix . '-' . str_pad($count + 1, 2, '0', STR_PAD_LEFT);
 
         Pendaftaran::create([
             'user_id' => Auth::id(),
@@ -46,7 +53,7 @@ class PendaftaranController extends Controller
             'status' => 'Menunggu',
         ]);
 
-        return redirect()->route('home')->with('success', 'Booking berhasil! Nomor Antrian Anda: ' . $nomorAntrian);
+        return redirect()->route('home')->with('success', 'Berhasil mendaftar. Nomor Antrian: ' . $nomorAntrian);
     }
 
     public function riwayat()
