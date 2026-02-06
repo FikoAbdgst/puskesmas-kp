@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dokter;
 use Illuminate\Http\Request;
 use App\Models\Pendaftaran;
 use App\Models\Poli;
@@ -36,5 +37,13 @@ class HomeController extends Controller
         });
 
         return view('home', compact('riwayat', 'live_antrian'));
+    }
+    public function jadwalDokter()
+    {
+        // Gunakan nama variabel $dokters (dengan akhiran 's')
+        // agar sesuai dengan yang ada di resources/views/pasien/jadwal.blade.php
+        $dokters = Dokter::with('poli')->get();
+
+        return view('pasien.jadwal', compact('dokters'));
     }
 }
