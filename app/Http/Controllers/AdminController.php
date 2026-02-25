@@ -71,7 +71,6 @@ class AdminController extends Controller
         return view('admin.pelayanan', compact('sedang_diperiksa', 'antrean_menunggu', 'polis'));
     }
 
-    // FUNGSI INI DIMODIFIKASI UNTUK GENERATE NOMOR ANTRIAN
     public function verifikasi($id)
     {
         $pendaftaran = Pendaftaran::findOrFail($id);
@@ -81,14 +80,10 @@ class AdminController extends Controller
             return back()->with('error', 'Data ini sudah diproses sebelumnya.');
         }
 
-        // --- LOGIKA PEMBUATAN NOMOR ANTRIAN (DIPINDAHKAN DARI PENDAFTARAN CONTROLLER) ---
-
-        // 1. Ambil Prefix Poli
+        // --- LOGIKA PEMBUATAN NOMOR ANTRIAN ---
         $poli = Poli::find($pendaftaran->poli_id);
         $prefix = strtoupper(substr($poli->nama_poli, 0, 1));
 
-        // 2. Cari nomor terakhir PADA TANGGAL KUNJUNGAN TERSEBUT (bukan hari ini, tapi tgl bookingnya)
-        //    dan yang NOMOR ANTRIANNYA TIDAK NULL (sudah diverifikasi)
         $lastRegistration = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
             ->where('tanggal_kunjungan', $pendaftaran->tanggal_kunjungan)
             ->whereNotNull('nomor_antrian')
@@ -105,14 +100,29 @@ class AdminController extends Controller
         $nomorAntrian = $prefix . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
         // ----------------------------------------------------------------------------------
 
-        // Update Data
+        // Update Data Default ke Terverifikasi
         $pendaftaran->nomor_antrian = $nomorAntrian;
-
-        // Status menjadi 'Terverifikasi'.
-        // Nanti saat Puskesmas Buka, data dengan status 'Terverifikasi' otomatis muncul di Menu Pelayanan.
         $pendaftaran->status = 'Terverifikasi';
-
         $pendaftaran->save();
+
+        // --- TAMBAHAN LOGIKA AUTO-PANGGIL ---
+        // Cek apakah puskesmas BUKA dan pasien mendaftar untuk HARI INI
+        $isOpen = Setting::where('key', 'is_open')->first()->value ?? '0';
+        $today = date('Y-m-d');
+
+        if ($isOpen == '1' && $pendaftaran->tanggal_kunjungan == $today) {
+            // Cek apakah dokter di poli tersebut sedang kosong (tidak ada pasien 'Dipanggil')
+            $sedangDiperiksa = Pendaftaran::where('poli_id', $pendaftaran->poli_id)
+                ->where('tanggal_kunjungan', $today)
+                ->where('status', 'Dipanggil')
+                ->exists();
+
+            // Jika dokter kosong, langsung ubah status pasien pertama ini menjadi 'Dipanggil'
+            if (!$sedangDiperiksa) {
+                $pendaftaran->status = 'Dipanggil';
+                $pendaftaran->save();
+            }
+        }
 
         return back()->with('success', 'Pendaftaran diverifikasi. Nomor Antrian Dibuat: ' . $nomorAntrian);
     }
@@ -130,9 +140,14 @@ class AdminController extends Controller
         $request->validate(['catatan_medis' => 'required']);
         $pendaftaran = Pendaftaran::findOrFail($id);
 
+        // Cari dokter yang bertugas di poli tempat pasien mendaftar
+        $dokter = Dokter::where('poli_id', $pendaftaran->poli_id)->first();
+
+        // Update status, catatan medis, dan masukkan ID dokternya
         $pendaftaran->update([
             'status' => 'Selesai',
-            'catatan_medis' => $request->catatan_medis
+            'catatan_medis' => $request->catatan_medis,
+            'dokter_id' => $dokter ? $dokter->id : null // Tambahkan baris ini
         ]);
 
         // Auto call next patient logic (tetap sama)
@@ -202,5 +217,37 @@ class AdminController extends Controller
                 }
             }
         }
+    }
+    public function laporan(\Illuminate\Http\Request $request)
+    {
+        // 1. Ambil filter bulan & tahun dari Request (Default ke bulan & tahun saat ini)
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        // 2. Query data berdasarkan bulan dan tahun yang dipilih
+        $laporan = \App\Models\Pendaftaran::where('status', 'Selesai')
+            ->whereMonth('tanggal_kunjungan', $bulan)
+            ->whereYear('tanggal_kunjungan', $tahun)
+            ->with(['user', 'poli', 'dokter'])
+            ->orderBy('tanggal_kunjungan', 'desc')
+            ->get();
+
+        // 3. Validasi apakah tombol cetak boleh diaktifkan
+        $currentMonth = (int) date('m');
+        $currentYear = (int) date('Y');
+        $bulanPilih = (int) $bulan;
+        $tahunPilih = (int) $tahun;
+
+        $bisaDicetak = false;
+
+        // Logika: Hanya bisa cetak jika tahun kurang dari tahun ini,
+        // ATAU tahunnya sama tapi bulannya kurang dari bulan ini.
+        if ($tahunPilih < $currentYear) {
+            $bisaDicetak = true;
+        } elseif ($tahunPilih == $currentYear && $bulanPilih < $currentMonth) {
+            $bisaDicetak = true;
+        }
+
+        return view('admin.laporan', compact('laporan', 'bulan', 'tahun', 'bisaDicetak'));
     }
 }

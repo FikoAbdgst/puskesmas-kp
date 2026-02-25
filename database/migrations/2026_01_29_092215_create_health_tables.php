@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('polis', function (Blueprint $table) {
             $table->id();
             $table->string('nama_poli');
-            // $table->integer('kuota')->nullable(); // Dibuat nullable karena tidak lagi menjadi pembatas utama
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
@@ -32,7 +31,6 @@ return new class extends Migration
             $table->date('tanggal_kunjungan');
             $table->string('nomor_antrian')->nullable();
             $table->text('keluhan');
-            // Status ditambah 'Dipanggil' untuk mekanisme live antrian
             $table->string('status')->default('Menunggu');
             $table->text('catatan_medis')->nullable();
             $table->timestamps();

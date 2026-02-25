@@ -44,7 +44,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::post('/periksa/{id}', [AdminController::class, 'prosesPeriksa'])->name('admin.periksa');
     Route::get('/laporan', [AdminController::class, 'laporan'])->name('admin.laporan');
     Route::post('/admin/pendaftaran/{id}/tolak', [AdminController::class, 'tolak'])->name('admin.tolak');
-
+    Route::post('/admin/laporan/clear', [App\Http\Controllers\AdminController::class, 'clearLaporan'])->name('admin.laporan.clear');
 
     // Tambahkan route ini:
     Route::get('/api/pending-terbaru', [AdminController::class, 'getPendingJson'])->name('admin.pending.json');
